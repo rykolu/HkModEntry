@@ -1,0 +1,13 @@
+using System;
+
+namespace Amplitude.UI
+{
+	[Serializable]
+	public enum Direction
+	{
+		LeftToRight = 1,
+		RightToLeft = 2,
+		TopToBottom = 4,
+		BottomToTop = 8
+	}
+}
