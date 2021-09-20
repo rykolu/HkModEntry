@@ -7,6 +7,7 @@ using Amplitude.UI.Styles.Scene;
 using Amplitude.UI.Windows;
 using UnityEngine;
 
+//extra references needed
 using System.Reflection;
 using System.IO;
 using System.Collections.Generic;
@@ -151,12 +152,13 @@ namespace Amplitude.UI
 		}
 
 
-		//BELOW ARE THE CHANGES I MADE, ABOVE IS UNTOUCHED
+		//BELOW ARE THE CHANGES I'VE MADE, ABOVE IS THE GAME'S ORIGINAL CODE
 
 
 
 		private static bool HkModderInitialized = false;    //currently, this is redundant, but maybe useful later
 		private static string modPath = "";                 //C:/Program Files (x86)/Steam/steamapps/common/Humankind/Mods
+															//this is the string that will be passed to Mymod.Main.Load
 
 		//all variables(in lists) needed to iterate through each mod in mod folder
 		private static List<string> ListOfMods = new List<string>();					//"HkCameraMod", "HkMod1", etc
@@ -176,6 +178,7 @@ namespace Amplitude.UI
                 HkModEntry();
                 HkModderInitialized = true;
 
+				//runs only the "OnToggle" dlls
 				for (int i = 0; i < ListOfMods.Count; i++)
                 {
 					if (OnUpdates[i] == false)
@@ -188,14 +191,10 @@ namespace Amplitude.UI
 
 		protected virtual void Update()
 		{
-			//this is from the original dll
+			//from original dll
 			_ = base.Loaded;
 
-            /*if (Input.GetKeyDown(KeyCode.F5))
-            {
-                HkModEntry();
-            }*/
-
+			//runs only the "OnUpdate" dlls
 			for (int i = 0; i < ListOfMods.Count; i++)
             {
 				if (OnUpdates[i] == true)
@@ -203,7 +202,6 @@ namespace Amplitude.UI
 					ModOnUpdate[i].Invoke(cInst[i], new object[] {});
 				}
             }
-
 		}
 
 
@@ -212,7 +210,7 @@ namespace Amplitude.UI
 		{
 			List<string> modList = new List<string>();
 
-			//creates this path-->  C:/Program Files (x86)/Steam/steamapps/common/Humankind/Mods
+			//creates this path (example)-->  C:/Program Files (x86)/Steam/steamapps/common/Humankind/Mods
 			modPath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 			modPath = modPath.Replace("\\Humankind_Data\\Managed", "");
 			modPath = System.IO.Path.Combine(modPath, "Mods");
@@ -238,6 +236,7 @@ namespace Amplitude.UI
 						modPath + "/" + modDir[i].Name + "/" + modDir[i].Name + ".dll"
 						); //				   /\					/\
 
+					//how I find the dll methods at runtime
 					modType.Add(modDLL.GetType(modDir[i].Name + ".Main"));
 					cInst.Add(Activator.CreateInstance(modType[i]));
 					ModLoad.Add(modType[i].GetMethod("Load"));
@@ -267,9 +266,9 @@ namespace Amplitude.UI
 				StreamWriter HkModLogger = new StreamWriter(
 					System.IO.Path.Combine(modPath, "ModLogger.txt"),
 					true);
-
-				//if (IsChecking == false) {
 				HkModLogger.WriteLine("HkModder Initialized");
+
+				//iterates through each mod returned by HkModSetup
 				for (int i = 0; i < ListOfMods.Count; i++)
 				{
 					try
@@ -290,21 +289,6 @@ namespace Amplitude.UI
 						HkModLogger.WriteLine("ERROR: " + ListOfMods[i] + " => " + e);
 					}
 				}
-				/*else // IsChecking == true
-				{
-					for (int i = 0; i < ListOfMods.Count; i++)
-					{
-						try
-						{
-							var returnVal = ModCheckIfLoaded[i].Invoke(cInst[i], new object[] { });
-							HkModLogger.WriteLine("CHECK: " + ListOfMods[i] + " IsLoaded? " + returnVal);
-						}
-						catch (Exception e)
-						{
-							HkModLogger.WriteLine("ERROR: " + ListOfMods[i] + " => " + e);
-						}
-					}
-				}*/
 
 				HkModLogger.WriteLine("  >>>");
 				HkModLogger.Close();
